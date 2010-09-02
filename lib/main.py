@@ -29,23 +29,31 @@ class Projectile(pygame.sprite.Sprite):
         self.h0 = 0
         self.t = 0
         self.alive = 1
+        self.rad_angle = math.radians(self.angle)
+        projected_y = ((pow(self.velocity, 2 )) * (pow(math.sin(self.rad_angle), 2))) / (2 * self.gravity)
+        projected_time = ((self.velocity * math.sin(self.rad_angle)) / self.gravity)
+        projected_x = (self.velocity * math.cos(self.rad_angle) * projected_time) * 2
+        print "-----------------------------"
+        print "Angle = " + str(self.angle)
+        print "Velocity = " + str(self.velocity)
+        print "y: " + str(projected_y)
+        print "time: " + str(projected_time)
+        print "x: " + str(projected_x)
 
     def update(self):
         if self.alive:
-            rad_angle = math.radians(self.angle)
             # FIXME - Need to figure out how to get time into this formula for y
-            #proj_y = ((pow(self.velocity, 2 )) * (pow(math.sin(rad_angle), 2))) / (2 * self.gravity)
             #print "projectile y: " + str(proj_y)
             (curr_x, curr_y) = self.pos
             self.t = self.t + 1
             tx = self.t/10.0
-            proj_y = self.h0 + (tx * self.velocity * math.sin(rad_angle)) - (self.gravity * tx * tx)/2
-            print "y: " + str(proj_y)
+            proj_y = self.h0 + (tx * self.velocity * math.sin(self.rad_angle)) - (self.gravity * tx * tx)/2
+            #print "y: " + str(proj_y)
             size = ((proj_y / 20) + self.min_size)
             self.image = pygame.Surface((size,size))
             self.image.fill([255,255,0])
-            proj_x = self.velocity * math.cos(rad_angle) * tx
-            print "x: " + str(proj_x)
+            proj_x = self.velocity * math.cos(self.rad_angle) * tx
+            #print "x: " + str(proj_x)
             self.pos = (curr_x, curr_y - proj_x / 20)
             self.rect.center = self.pos
             if proj_y < 0:
