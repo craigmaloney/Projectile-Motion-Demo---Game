@@ -16,26 +16,28 @@ class Tank(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = pos)
         self.angle = angle
         self.velocity = velocity
+
     def update(self):
         pass
+
     def move_left(self):
         (curr_x, curr_y) = self.pos
-        curr_x = curr_x - 100
-        if (curr_x <= 50):
-            curr_x = 50
+        curr_x = curr_x - 20
+        if (curr_x <= 10):
+            curr_x = 10
         self.pos = (curr_x, curr_y)
         self.rect = self.image.get_rect(center = self.pos)
+
     def move_right(self):
         (curr_x, curr_y) = self.pos
-        curr_x = curr_x + 100
-        if (curr_x >= 650):
-            curr_x = 650
+        curr_x = curr_x + 20
+        if (curr_x >= 690):
+            curr_x = 690
         self.pos = (curr_x, curr_y)
         self.rect = self.image.get_rect(center = self.pos)
 
     def fire(self):
         (curr_x, curr_y) = self.pos
-        print curr_y
         Projectile(self.pos,self.angle,self.velocity)
 
     def gun_raise(self):
@@ -68,7 +70,7 @@ class Tank(pygame.sprite.Sprite):
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, pos, angle = 0, velocity = 0):
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.min_size =10 
+        self.min_size = 10 
         self.image = pygame.Surface((self.min_size,self.min_size))
         self.color = [255,0,0]
         self.image.fill(self.color)
@@ -94,26 +96,24 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self):
         if self.alive:
-            # FIXME - Need to figure out how to get time into this formula for y
-            #print "projectile y: " + str(proj_y)
             (curr_x, curr_y) = self.pos
-            tx = self.t/10.0
+            tx = self.t/50.0
             proj_y = self.h0 + (tx * self.velocity * math.sin(self.rad_angle)) - (self.gravity * tx * tx) / 2
-            size = ((proj_y / 20) + self.min_size)
+            size = ((proj_y / 2) + self.min_size)
             self.image = pygame.Surface((size,size))
             self.image.fill(self.color)
             proj_x = self.velocity * math.cos(self.rad_angle) * tx
+            #print "proj_x:" + str(proj_x)
             if proj_y < 0:
-                print "proj_x:" + str(proj_x)
                 self.hit_ground()
-            if (curr_y >= 500 and curr_y <= 600):
+            if (proj_x > 11 and proj_x < 12):
                 if (proj_y < 10):
                     self.bounce = True 
-                    print proj_y
+                    print "proj_y: " + str(proj_y)
             if (self.bounce == False):
-                self.pos = (curr_x, (SCREEN_WIDTH - ((proj_x * 20)) + 20 ))
+                self.pos = (curr_x, (SCREEN_WIDTH - ((proj_x * 20)) + 20))
             else: 
-                self.pos = (curr_x, (curr_y + (tx*10)))
+                self.pos = (curr_x,curr_y)
             self.rect.center = self.pos
             self.t = self.t + 1
 
@@ -138,6 +138,16 @@ class Grid(pygame.sprite.Sprite):
             for y in range(0,701,100):
                 pygame.draw.line(self.image, (0,0,0), (0,y), (SCREEN_WIDTH,y),3)
                 pygame.draw.line(self.image, (0,0,0), (x,0), (x,SCREEN_WIDTH),3)
+
+    def update(self):
+        pass
+
+class Wall (pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self,self.containers)
+        self.image = pygame.Surface((SCREEN_WIDTH,20)).convert()
+        self.image.fill((106,75,00))
+        self.rect = self.image.get_rect(topleft = (0,480))
 
     def update(self):
         pass
@@ -175,16 +185,19 @@ def game():
     projectiles = pygame.sprite.Group()
     grid = pygame.sprite.Group()
     notice = pygame.sprite.Group()
+    wall = pygame.sprite.Group()
     all = pygame.sprite.OrderedUpdates()
 
     Tank.containers = all, tanks
     Projectile.containers = all, projectiles
     Grid.containers = all, grid 
     Notice.containers = all, notice
+    Wall.containers = all, wall
     Tank.image = pygame.image.load(data.filepath('images', 'tank.png'))
     screen.blit(background,(0,0))
     pygame.display.flip()
     Grid()
+    Wall()
 
     little_tank = Tank((SCREEN_WIDTH / 2,SCREEN_WIDTH),55,15)
     notices = Notice(little_tank)
