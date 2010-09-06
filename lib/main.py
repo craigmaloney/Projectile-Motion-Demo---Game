@@ -5,6 +5,7 @@ from sys import exit
 import os
 import data
 import math
+import random
 
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = 750
@@ -118,15 +119,21 @@ class Projectile(pygame.sprite.Sprite):
             self.t = self.t + 1
 
     def hit_ground(self):
+        (curr_x, curr_y) = self.rect.center
         self.alive = False
+        x_list = (curr_x - 20, curr_x, curr_x + 20)
+        y_list = (curr_y - 20, curr_y, curr_y + 20)
+        for x in (x_list):
+            for y in (y_list):
+                Explosion((x,y))
         self.image.fill([0,0,0])
      
 class Grid(pygame.sprite.Sprite):
     def __init__(self):
         print "Hello"
         pygame.sprite.Sprite.__init__(self, self.containers)
-        self.image = pygame.Surface((SCREEN_WIDTH,SCREEN_HEIGHT)).convert()
-        self.image.fill((255,255,255))
+        self.image = pygame.Surface([SCREEN_WIDTH,SCREEN_HEIGHT],SRCALPHA)
+        self.image.fill([255,255,255])
         self.rect = self.image.get_rect(topleft = (0,0))
         # Draw the smaller lines first
         for x in range(0,701,20):
@@ -145,12 +152,29 @@ class Grid(pygame.sprite.Sprite):
 class Wall (pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self,self.containers)
-        self.image = pygame.Surface((SCREEN_WIDTH,20)).convert()
-        self.image.fill((106,75,00))
+        self.image = pygame.Surface((SCREEN_WIDTH,20))
+        self.image.fill([106,75,00])
         self.rect = self.image.get_rect(topleft = (0,480))
 
     def update(self):
         pass
+
+class Explosion (pygame.sprite.Sprite):
+    def __init__(self,pos):
+        pygame.sprite.Sprite.__init__(self,self.containers)
+        self.pos = pos
+        self.image = pygame.Surface((20,20),SRCALPHA).convert()
+        self.image.fill([255,255,0])
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.pos)
+        self.dissipate = 255
+    def update(self):
+        self.rect.center = (self.pos)
+        self.image.fill([255,random.randint(0,255),random.randint(0,255)])
+        self.image.set_alpha(self.dissipate)
+        self.dissipate = self.dissipate - 10
+        if (self.dissipate < 0):
+            self.kill()
 
 class Notice (pygame.sprite.Sprite):
     def __init__(self,little_tank):
@@ -176,7 +200,7 @@ class Notice (pygame.sprite.Sprite):
 
 def game():
 
-    screen = pygame.display.set_mode((SCREEN_WIDTH,750), DOUBLEBUF|HWSURFACE, 32)
+    screen = pygame.display.set_mode((SCREEN_WIDTH,750))
     clock = pygame.time.Clock()
     pygame.display.set_caption("Projectile Motion")
     background = pygame.image.load(data.filepath('images','background.png')).convert()
@@ -186,6 +210,7 @@ def game():
     grid = pygame.sprite.Group()
     notice = pygame.sprite.Group()
     wall = pygame.sprite.Group()
+    explosions = pygame.sprite.Group()
     all = pygame.sprite.OrderedUpdates()
 
     Tank.containers = all, tanks
@@ -193,6 +218,7 @@ def game():
     Grid.containers = all, grid 
     Notice.containers = all, notice
     Wall.containers = all, wall
+    Explosion.containers = all, explosions
     Tank.image = pygame.image.load(data.filepath('images', 'tank.png'))
     screen.blit(background,(0,0))
     pygame.display.flip()
