@@ -17,23 +17,30 @@ class Tank(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = pos)
         self.angle = angle
         self.velocity = velocity
+        self.position_x = 18
 
     def update(self):
         pass
 
     def move_left(self):
+        self.position_x = self.position_x - 1
         (curr_x, curr_y) = self.pos
         curr_x = curr_x - 20
         if (curr_x <= 10):
             curr_x = 10
+        if (self.position_x < 1):
+            self.position_x = 1
         self.pos = (curr_x, curr_y)
         self.rect = self.image.get_rect(center = self.pos)
 
     def move_right(self):
+        self.position_x = self.position_x + 1
         (curr_x, curr_y) = self.pos
         curr_x = curr_x + 20
         if (curr_x >= 690):
             curr_x = 690
+        if (self.position_x > 35):
+            self.position_x = 35
         self.pos = (curr_x, curr_y)
         self.rect = self.image.get_rect(center = self.pos)
 
@@ -66,6 +73,9 @@ class Tank(pygame.sprite.Sprite):
 
     def get_angle(self):
         return self.angle
+
+    def get_position(self):
+        return self.position_x
         
 
 class Projectile(pygame.sprite.Sprite):
@@ -81,7 +91,7 @@ class Projectile(pygame.sprite.Sprite):
         self.velocity = velocity
         self.gravity = 9.8
         self.h0 = 0
-        self.t = 0
+        self.t = 1
         self.alive = True
         self.bounce = False
         self.rad_angle = math.radians(self.angle)
@@ -119,7 +129,11 @@ class Projectile(pygame.sprite.Sprite):
             self.t = self.t + 1
 
     def hit_ground(self):
+        # position on the grid so the explosion doesn't span 5 grid points
         (curr_x, curr_y) = self.rect.center
+        curr_x = curr_x - (curr_x % 10)
+        curr_y = curr_y - (curr_y % 10)
+
         self.alive = False
         x_list = (curr_x - 20, curr_x, curr_x + 20)
         y_list = (curr_y - 20, curr_y, curr_y + 20)
@@ -176,6 +190,31 @@ class Explosion (pygame.sprite.Sprite):
         if (self.dissipate < 0):
             self.kill()
 
+class Enemy (pygame.sprite.Sprite):
+    def __init__(self,coordinates):
+        pygame.sprite.Sprite.__init__(self,self.containers)
+        self.coordinates = coordinates
+        offset = 10
+        (coordinate_x, coordinate_y) = self.coordinates
+        self.pos = ((coordinate_x * 20 - offset), (700 - (coordinate_y * 20)) + offset)
+        self.image = pygame.Surface((20,20),SRCALPHA).convert()
+        self.image.fill([255,0,0])
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.pos)
+        self.alpha = 50
+        self.image.set_alpha(self.alpha)
+        self.hit = False
+    def update(self):
+        if (self.hit):
+            if (self.alpha <= 255):
+                self.alpha = self.alpha + 5
+                self.image.set_alpha(self.alpha)
+
+    def collide(self):
+        self.hit = True
+
+
+
 class Notice (pygame.sprite.Sprite):
     def __init__(self,little_tank):
         pygame.sprite.Sprite.__init__(self,self.containers)
@@ -184,8 +223,9 @@ class Notice (pygame.sprite.Sprite):
         self.image = pygame.Surface([200,26])
         self.angle = little_tank.get_angle()
         self.velocity = little_tank.get_velocity()
+        self.position = little_tank.get_position()
         self.rect = self.image.get_rect()
-        self.text = 'Angle: ' + str(self.angle) + '   Velocity: ' + str(self.velocity) 
+        self.text = 'Position: ' + str(self.position) + '   Angle: ' + str(self.angle) + '   Velocity: ' + str(self.velocity) 
         self.image = self.font.render(self.text,1,(0,0,0))
         self.rect = self.image.get_rect()
         self.rect.center = ((350,720))
@@ -193,8 +233,9 @@ class Notice (pygame.sprite.Sprite):
     def update(self):
         self.angle = self.tank.get_angle()
         self.velocity = self.tank.get_velocity()
-        self.text = 'Angle: ' + str(self.angle) + '   Velocity: ' + str(self.velocity) 
+        self.position = self.tank.get_position()
         self.image = self.font.render(self.text,1,(0,0,0))
+        self.text = 'Position: ' + str(self.position) + '   Angle: ' + str(self.angle) + '   Velocity: ' + str(self.velocity) 
         self.rect = self.image.get_rect()
         self.rect.center = ((350,720))
 
@@ -205,12 +246,21 @@ def game():
     pygame.display.set_caption("Projectile Motion")
     background = pygame.image.load(data.filepath('images','background.png')).convert()
 
+    enemy_list = []
+    enemy_list.extend([(26,20), (27,20), (28,20)])
+    enemy_list.extend([(5,15),(5,16)])
+    enemy_list.extend([(18,16),(18,17)])
+    enemy_list.extend([(9,26),(10,26),(11,26)])
+    enemy_list.extend([(30,30),(31,30),(32,30),(33,30)])
+
+
     tanks = pygame.sprite.Group()
     projectiles = pygame.sprite.Group()
     grid = pygame.sprite.Group()
     notice = pygame.sprite.Group()
     wall = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
+    enemies = pygame.sprite.Group()
     all = pygame.sprite.OrderedUpdates()
 
     Tank.containers = all, tanks
@@ -219,14 +269,19 @@ def game():
     Notice.containers = all, notice
     Wall.containers = all, wall
     Explosion.containers = all, explosions
+    Enemy.containers = all, enemies
     Tank.image = pygame.image.load(data.filepath('images', 'tank.png'))
     screen.blit(background,(0,0))
     pygame.display.flip()
     Grid()
     Wall()
 
+
     little_tank = Tank((SCREEN_WIDTH / 2,SCREEN_WIDTH),55,15)
     notices = Notice(little_tank)
+
+    for i in (enemy_list):
+        Enemy(i)
 
     while True:
         for event in pygame.event.get():
@@ -249,6 +304,9 @@ def game():
                     little_tank.velocity_increase()
                 if event.key == K_MINUS:
                     little_tank.velocity_decrease()
+
+        for enemy in (pygame.sprite.groupcollide(enemies,explosions,False,False)):
+            enemy.collide()
 
         all.clear(screen,background)
         all.update()
