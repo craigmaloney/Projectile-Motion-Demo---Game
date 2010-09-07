@@ -86,12 +86,13 @@ class Projectile(pygame.sprite.Sprite):
         self.color = [255,0,0]
         self.image.fill(self.color)
         self.pos = pos
+        self.sound = Projectile.sound
         self.rect = self.image.get_rect(center = pos)
         self.angle = angle
         self.velocity = velocity
         self.gravity = 9.8
         self.h0 = 0
-        self.t = 1
+        self.t = 5
         self.alive = True
         self.bounce = False
         self.rad_angle = math.radians(self.angle)
@@ -104,6 +105,7 @@ class Projectile(pygame.sprite.Sprite):
         print "y: " + str(self.projected_y)
         print "time: " + str(projected_time)
         print "x: " + str(self.projected_x)
+        self.sound[0].play()
 
     def update(self):
         if self.alive:
@@ -138,9 +140,6 @@ class Projectile(pygame.sprite.Sprite):
         else:
             # Calculate from the projected x value (X being the distance away from the cannon)
             curr_y = (700 - ( int(round(self.projected_x,1)) * 20) ) + offset
-
-        print curr_x
-        print curr_y
         self.alive = False
         x_list = (curr_x - 20, curr_x, curr_x + 20)
         y_list = (curr_y - 20, curr_y, curr_y + 20)
@@ -148,6 +147,7 @@ class Projectile(pygame.sprite.Sprite):
             for y in (y_list):
                 Explosion((x,y))
         self.image.fill([0,0,0])
+        self.sound[random.randint(1,4)].play()
      
 class Grid(pygame.sprite.Sprite):
     def __init__(self):
@@ -211,6 +211,7 @@ class Enemy (pygame.sprite.Sprite):
         self.alpha = 50
         self.image.set_alpha(self.alpha)
         self.hit = False
+        self.sound = Enemy.sound
     def update(self):
         if (self.hit):
             if (self.alpha <= 255):
@@ -218,7 +219,10 @@ class Enemy (pygame.sprite.Sprite):
                 self.image.set_alpha(self.alpha)
 
     def collide(self):
-        self.hit = True
+        if (self.hit == False):
+            print "I'm hit!"
+            self.sound[(random.randint(0,1))].play()
+            self.hit = True
 
 
 
@@ -278,6 +282,18 @@ def game():
     Explosion.containers = all, explosions
     Enemy.containers = all, enemies
     Tank.image = pygame.image.load(data.filepath('images', 'tank.png'))
+    Projectile.sound = [
+            pygame.mixer.Sound(data.filepath('sounds','bottle_rocket.wav')),
+            pygame.mixer.Sound(data.filepath('sounds','explosion-01.wav')),
+            pygame.mixer.Sound(data.filepath('sounds','explosion-02.wav')),
+            pygame.mixer.Sound(data.filepath('sounds','explosion-03.wav')),
+            pygame.mixer.Sound(data.filepath('sounds','explosion-04.wav')),
+            ]
+    Enemy.sound = [
+            pygame.mixer.Sound(data.filepath('sounds','bomb-02.wav')),
+            pygame.mixer.Sound(data.filepath('sounds','bomb-06.wav')),
+            ]
+
     screen.blit(background,(0,0))
     pygame.display.flip()
     Grid()
@@ -323,8 +339,11 @@ def game():
 
 
 def main():
+    pygame.mixer.pre_init(44100,8,4,1024)
     pygame.init()
     pygame.font.init()
+    pygame.mixer.music.set_volume(2.0)
+
     game()
     exit()
 
