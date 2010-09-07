@@ -95,15 +95,15 @@ class Projectile(pygame.sprite.Sprite):
         self.alive = True
         self.bounce = False
         self.rad_angle = math.radians(self.angle)
-        projected_y = ((pow(self.velocity, 2 )) * (pow(math.sin(self.rad_angle), 2))) / (2 * self.gravity)
+        self.projected_y = ((pow(self.velocity, 2 )) * (pow(math.sin(self.rad_angle), 2))) / (2 * self.gravity)
         projected_time = ((self.velocity * math.sin(self.rad_angle)) / self.gravity)
-        projected_x = (self.velocity * math.cos(self.rad_angle) * projected_time) * 2
+        self.projected_x = (self.velocity * math.cos(self.rad_angle) * projected_time) * 2
         print "-----------------------------"
         print "Angle = " + str(self.angle)
         print "Velocity = " + str(self.velocity)
-        print "y: " + str(projected_y)
+        print "y: " + str(self.projected_y)
         print "time: " + str(projected_time)
-        print "x: " + str(projected_x)
+        print "x: " + str(self.projected_x)
 
     def update(self):
         if self.alive:
@@ -120,6 +120,7 @@ class Projectile(pygame.sprite.Sprite):
             if (proj_x > 11 and proj_x < 12):
                 if (proj_y < 10):
                     self.bounce = True 
+                    self.hit_ground()
                     print "proj_y: " + str(proj_y)
             if (self.bounce == False):
                 self.pos = (curr_x, (SCREEN_WIDTH - ((proj_x * 20)) + 20))
@@ -129,11 +130,17 @@ class Projectile(pygame.sprite.Sprite):
             self.t = self.t + 1
 
     def hit_ground(self):
+        offset = 10
+        (curr_x, curr_y) = self.pos
         # position on the grid so the explosion doesn't span 5 grid points
-        (curr_x, curr_y) = self.rect.center
-        curr_x = curr_x - (curr_x % 10)
-        curr_y = curr_y - (curr_y % 10)
+        if (self.bounce):
+            curr_y = (700 - (10 * 20) + offset)
+        else:
+            # Calculate from the projected x value (X being the distance away from the cannon)
+            curr_y = (700 - ( int(round(self.projected_x,1)) * 20) ) + offset
 
+        print curr_x
+        print curr_y
         self.alive = False
         x_list = (curr_x - 20, curr_x, curr_x + 20)
         y_list = (curr_y - 20, curr_y, curr_y + 20)
