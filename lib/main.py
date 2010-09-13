@@ -209,7 +209,7 @@ class Enemy (pygame.sprite.Sprite):
         self.image.fill([255,0,0])
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos)
-        self.alpha = 50
+        self.alpha = 0
         self.image.set_alpha(self.alpha)
         self.hit = False
         self.sound = Enemy.sound
