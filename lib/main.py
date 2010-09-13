@@ -120,10 +120,11 @@ class Projectile(pygame.sprite.Sprite):
             if proj_y < 0:
                 self.hit_ground()
             if (proj_x > 11 and proj_x < 12):
-                if (proj_y < 10):
+                if (proj_y < 5):
                     self.bounce = True 
                     self.hit_ground()
                     print "proj_y: " + str(proj_y)
+                    print "time: " + str(tx)
             if (self.bounce == False):
                 self.pos = (curr_x, (SCREEN_WIDTH - ((proj_x * 20)) + 20))
             else: 
@@ -258,12 +259,12 @@ def game():
     background = pygame.image.load(data.filepath('images','background.png')).convert()
 
     enemy_list = []
-    enemy_list.extend([(26,20), (27,20), (28,20)])
-    enemy_list.extend([(5,15),(5,16)])
-    enemy_list.extend([(18,16),(18,17)])
+    enemy_list.extend([(18, 16), (18,17)])
+    enemy_list.extend([(23, 20)])
+    enemy_list.extend([(2,20),(3,20),(4,20),(5,20),(6,20), (6,19), (4,21),(4,22)])
     enemy_list.extend([(9,26),(10,26),(11,26)])
-    enemy_list.extend([(30,30),(31,30),(32,30),(33,30)])
-
+    enemy_list.extend([(24,27),(23,28),(22,29)])
+    enemy_list.extend([(29,32),(30,32),(31,32),(32,32),(32,31),(32,30),(32,29)])
 
     tanks = pygame.sprite.Group()
     projectiles = pygame.sprite.Group()
