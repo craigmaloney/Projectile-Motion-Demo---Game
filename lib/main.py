@@ -265,6 +265,7 @@ def game():
     enemy_list.extend([(9,26),(10,26),(11,26)])
     enemy_list.extend([(24,27),(23,28),(22,29)])
     enemy_list.extend([(29,32),(30,32),(31,32),(32,32),(32,31),(32,30),(32,29)])
+    enemy_list.extend([(14,21),(15,22),(16,23),(17,24)])
 
     tanks = pygame.sprite.Group()
     projectiles = pygame.sprite.Group()
